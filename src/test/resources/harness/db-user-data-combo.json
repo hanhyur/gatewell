@@ -1,0 +1,18 @@
+{
+  "scenarioId": "db-user-data-combo",
+  "scenarioVersion": "1.0.0",
+  "ruleVersion": "1.0.0",
+  "description": "Database access + user data processing creates elevated data exfiltration risk",
+  "input": {
+    "productName": "Customer Insights Bot",
+    "summary": "AI bot that queries customer database and processes personal data for insights",
+    "evidences": ["Standard access controls"],
+    "capabilities": ["DATABASE_ACCESS", "USER_DATA_PROCESSING"]
+  },
+  "expected": {
+    "decision": "BLOCK",
+    "severity": "HIGH",
+    "categories": ["DATA_LEAKAGE"],
+    "findingCodes": ["CAPABILITY_DATABASE_ACCESS", "CAPABILITY_USER_DATA_PROCESSING", "COMBO_DB_USER_DATA"]
+  }
+}

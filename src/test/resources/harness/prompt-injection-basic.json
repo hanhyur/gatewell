@@ -1,0 +1,18 @@
+{
+  "scenarioId": "prompt-injection-basic",
+  "scenarioVersion": "1.0.0",
+  "ruleVersion": "1.0.0",
+  "description": "AI product with code execution capability should be blocked",
+  "input": {
+    "productName": "Unsafe Bot",
+    "summary": "AI chatbot that can execute arbitrary code",
+    "evidences": ["No input sanitization"],
+    "capabilities": ["CODE_EXECUTION"]
+  },
+  "expected": {
+    "decision": "BLOCK",
+    "severity": "HIGH",
+    "categories": ["AUTH_WEAKNESS"],
+    "findingCodes": ["CAPABILITY_CODE_EXECUTION"]
+  }
+}

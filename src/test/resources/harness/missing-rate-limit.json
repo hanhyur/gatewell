@@ -1,0 +1,18 @@
+{
+  "scenarioId": "missing-rate-limit",
+  "scenarioVersion": "1.0.0",
+  "ruleVersion": "1.0.0",
+  "description": "AI product with external API calls and user data processing should receive caution",
+  "input": {
+    "productName": "API Gateway Bot",
+    "summary": "AI bot that calls external APIs and processes user data",
+    "evidences": ["Basic logging in place"],
+    "capabilities": ["EXTERNAL_API_CALL", "USER_DATA_PROCESSING"]
+  },
+  "expected": {
+    "decision": "CAUTION",
+    "severity": "MEDIUM",
+    "categories": ["RATE_LIMITING", "DATA_LEAKAGE"],
+    "findingCodes": ["CAPABILITY_EXTERNAL_API_CALL", "CAPABILITY_USER_DATA_PROCESSING"]
+  }
+}
