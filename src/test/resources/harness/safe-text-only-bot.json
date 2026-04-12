@@ -1,0 +1,18 @@
+{
+  "scenarioId": "safe-text-only-bot",
+  "scenarioVersion": "1.0.0",
+  "ruleVersion": "1.0.0",
+  "description": "Simple text-only chatbot with no dangerous capabilities - should be allowed",
+  "input": {
+    "productName": "HelpDesk Bot",
+    "summary": "Simple FAQ chatbot that only returns predefined text answers",
+    "evidences": ["No external access", "Text responses only"],
+    "capabilities": []
+  },
+  "expected": {
+    "decision": "ALLOW",
+    "severity": "NONE",
+    "categories": [],
+    "findingCodes": []
+  }
+}

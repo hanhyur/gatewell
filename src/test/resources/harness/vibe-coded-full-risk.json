@@ -1,0 +1,18 @@
+{
+  "scenarioId": "vibe-coded-full-risk",
+  "scenarioVersion": "1.1.0",
+  "ruleVersion": "1.0.0",
+  "description": "Vibe-coded app with all capabilities and no mitigations - should be blocked",
+  "input": {
+    "productName": "VibeApp Pro",
+    "summary": "AI app built with vibe coding, uses code execution, web browsing, file and DB access, external APIs, and user data",
+    "evidences": ["Built with Cursor in one afternoon"],
+    "capabilities": ["CODE_EXECUTION", "WEB_BROWSING", "FILE_ACCESS", "DATABASE_ACCESS", "EXTERNAL_API_CALL", "USER_DATA_PROCESSING"]
+  },
+  "expected": {
+    "decision": "BLOCK",
+    "severity": "HIGH",
+    "categories": ["AUTH_WEAKNESS", "PROMPT_INJECTION", "DATA_LEAKAGE", "RATE_LIMITING"],
+    "findingCodes": ["CAPABILITY_CODE_EXECUTION", "CAPABILITY_WEB_BROWSING", "CAPABILITY_FILE_ACCESS", "CAPABILITY_DATABASE_ACCESS", "CAPABILITY_EXTERNAL_API_CALL", "CAPABILITY_USER_DATA_PROCESSING", "COMBO_CODE_EXEC_WEB_BROWSE", "COMBO_DB_USER_DATA", "COMBO_BROAD_CAPABILITY_SURFACE"]
+  }
+}

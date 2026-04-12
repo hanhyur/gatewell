@@ -1,0 +1,18 @@
+{
+  "scenarioId": "partial-mitigation",
+  "scenarioVersion": "1.1.0",
+  "ruleVersion": "1.0.0",
+  "description": "App with risky capabilities but proper mitigations - should proceed with caution",
+  "input": {
+    "productName": "SecureBot Enterprise",
+    "summary": "Enterprise chatbot with sandboxed code execution and rate-limited API calls",
+    "evidences": ["Code execution runs in sandboxed Docker container", "Rate limiting configured at 100 req/min", "All user data encrypted at rest"],
+    "capabilities": ["CODE_EXECUTION", "EXTERNAL_API_CALL", "USER_DATA_PROCESSING"]
+  },
+  "expected": {
+    "decision": "CAUTION",
+    "severity": "MEDIUM",
+    "categories": ["AUTH_WEAKNESS", "RATE_LIMITING", "DATA_LEAKAGE"],
+    "findingCodes": ["CAPABILITY_CODE_EXECUTION", "CAPABILITY_EXTERNAL_API_CALL", "CAPABILITY_USER_DATA_PROCESSING", "COMBO_BROAD_CAPABILITY_SURFACE"]
+  }
+}

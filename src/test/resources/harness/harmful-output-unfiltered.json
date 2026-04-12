@@ -1,0 +1,18 @@
+{
+  "scenarioId": "harmful-output-unfiltered",
+  "scenarioVersion": "1.0.0",
+  "ruleVersion": "1.0.0",
+  "description": "AI product generating unfiltered content with public access and no cost controls",
+  "input": {
+    "productName": "OpenGen AI",
+    "summary": "Public-facing AI that generates unfiltered text responses with pay-per-call billing",
+    "evidences": ["No content moderation"],
+    "capabilities": []
+  },
+  "expected": {
+    "decision": "BLOCK",
+    "severity": "HIGH",
+    "categories": ["HARMFUL_OUTPUT", "ABUSE_SPAM", "COST_EXPLOSION"],
+    "findingCodes": ["SUMMARY_HARMFUL_OUTPUT", "SUMMARY_ABUSE_SPAM", "SUMMARY_COST_EXPLOSION"]
+  }
+}

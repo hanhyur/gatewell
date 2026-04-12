@@ -1,0 +1,18 @@
+{
+  "scenarioId": "production-no-observability",
+  "scenarioVersion": "1.0.0",
+  "ruleVersion": "1.0.0",
+  "description": "Production deployment with no monitoring and no fallback mechanism",
+  "input": {
+    "productName": "Quick Deploy Bot",
+    "summary": "AI agent deployed to production with no fallback when model API is unavailable",
+    "evidences": ["No monitoring configured"],
+    "capabilities": ["EXTERNAL_API_CALL"]
+  },
+  "expected": {
+    "decision": "CAUTION",
+    "severity": "MEDIUM",
+    "categories": ["RATE_LIMITING", "OBSERVABILITY_GAPS", "FALLBACK_FAILURES"],
+    "findingCodes": ["CAPABILITY_EXTERNAL_API_CALL", "SUMMARY_OBSERVABILITY_GAPS", "SUMMARY_FALLBACK_FAILURES"]
+  }
+}

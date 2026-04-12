@@ -1,0 +1,18 @@
+{
+  "scenarioId": "code-exec-web-browse-combo",
+  "scenarioVersion": "1.0.0",
+  "ruleVersion": "1.0.0",
+  "description": "Code execution + web browsing creates dangerous combo - prompt injection leading to code execution",
+  "input": {
+    "productName": "Research Agent",
+    "summary": "AI agent that browses the web and executes code to analyze data",
+    "evidences": ["Basic input validation"],
+    "capabilities": ["CODE_EXECUTION", "WEB_BROWSING"]
+  },
+  "expected": {
+    "decision": "BLOCK",
+    "severity": "HIGH",
+    "categories": ["AUTH_WEAKNESS", "PROMPT_INJECTION"],
+    "findingCodes": ["CAPABILITY_CODE_EXECUTION", "CAPABILITY_WEB_BROWSING", "COMBO_CODE_EXEC_WEB_BROWSE"]
+  }
+}
