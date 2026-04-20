@@ -1,0 +1,26 @@
+gatewell:
+  auth:
+    enabled: true
+  cors:
+    allowed-origins: ${FRONTEND_URL:https://gatewell-frontend.run.app}
+
+spring:
+  datasource:
+    url: jdbc:postgresql:///${DB_NAME:gatewell}?cloudSqlInstance=${CLOUD_SQL_INSTANCE}&socketFactory=com.google.cloud.sql.postgres.SocketFactory
+    username: ${DB_USER:gatewell}
+    password: ${DB_PASSWORD:}
+    driver-class-name: org.postgresql.Driver
+  h2:
+    console:
+      enabled: false
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    open-in-view: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+server:
+  port: ${PORT:8080}
