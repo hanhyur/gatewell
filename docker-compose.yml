@@ -24,9 +24,19 @@ services:
       DATABASE_URL: jdbc:postgresql://db:5432/gatewell
       DATABASE_USERNAME: gatewell
       DATABASE_PASSWORD: ${DB_PASSWORD:-gatewell_secret}
+      GATEWELL_CORS_ALLOWED_ORIGINS: http://localhost:3000
     depends_on:
       db:
         condition: service_healthy
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:8080
+    depends_on:
+      - app
 
 volumes:
   pgdata:

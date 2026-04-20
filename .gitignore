@@ -42,4 +42,6 @@ bin/
 .DS_Store
 
 ### Project-specific ###
-prompts/
+prompts/frontend/node_modules/
+frontend/.next/
+frontend/.env.local
