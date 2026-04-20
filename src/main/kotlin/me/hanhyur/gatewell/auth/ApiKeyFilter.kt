@@ -19,6 +19,7 @@ class ApiKeyFilter(
         private val PUBLIC_PATHS = setOf(
             "/rule-version",
             "/api-keys",
+            "/scan",
             "/h2-console",
             "/swagger-ui",
             "/v3/api-docs",
