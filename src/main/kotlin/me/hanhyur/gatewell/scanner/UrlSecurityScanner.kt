@@ -45,7 +45,7 @@ class UrlSecurityScanner {
         checkErrorHandling(url, findings)
         checkSsl(url, findings)
 
-        return ScanReport(url = url, reachable = true, findings = findings.toList())
+        return ScanReport(url = url, reachable = true, findings = findings.sortedBy { it.severity.ordinal })
     }
 
     private fun checkSecurityHeaders(response: HttpResponseData, findings: MutableList<ScanFinding>) {
