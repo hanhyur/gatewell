@@ -100,7 +100,7 @@ class GitHubCodeScanner {
         scanFilesForSecrets(tree, owner, repo, findings)
         scanFilesForVulnerabilities(tree, owner, repo, findings)
 
-        return ScanReport(url = repoUrl, reachable = true, findings = findings.toList())
+        return ScanReport(url = repoUrl, reachable = true, findings = findings.sortedBy { it.severity.ordinal })
     }
 
     private fun checkSensitiveFiles(paths: List<String>, owner: String, repo: String, findings: MutableList<ScanFinding>) {
