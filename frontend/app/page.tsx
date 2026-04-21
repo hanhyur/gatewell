@@ -2,16 +2,16 @@ import Link from "next/link";
 import Nav from "@/components/Nav";
 
 const features = [
-  { title: "14 Risk Rules", desc: "Capability analysis, text scanning, combination detection across 9 risk categories." },
-  { title: "Evidence-Based Mitigation", desc: "Show your safeguards and watch your risk score drop." },
-  { title: "Instant Decision", desc: "BLOCK, CAUTION, or ALLOW — a clear launch recommendation in seconds." },
-  { title: "Reassess & Compare", desc: "Add mitigations, reassess, and compare before vs after." },
+  { title: "Real Security Scanning", desc: "Checks security headers, CORS, exposed paths, SSL, cookies, error handling — like a real penetration test." },
+  { title: "GitHub Code Scanning", desc: "Finds hardcoded secrets, SQL injection, eval(), and 11+ vulnerability patterns in your source code." },
+  { title: "Instant Decision", desc: "BLOCK, CAUTION, or ALLOW — a clear verdict with detailed findings in seconds." },
+  { title: "OWASP-Based", desc: "Checks based on real-world attack techniques: XSS, clickjacking, CORS theft, information leakage." },
 ];
 
 const steps = [
-  { num: "1", title: "Describe your product", desc: "Name, summary, capabilities, and evidence." },
-  { num: "2", title: "Get your risk report", desc: "Findings, severity, and launch decision." },
-  { num: "3", title: "Fix and reassess", desc: "Address findings, submit new evidence, improve your score." },
+  { num: "1", title: "Enter your URL or GitHub repo", desc: "Paste your live site URL or GitHub repository link." },
+  { num: "2", title: "Get your security report", desc: "Automated scan finds real vulnerabilities with evidence." },
+  { num: "3", title: "Fix and re-scan", desc: "Address findings, re-scan to verify fixes are applied." },
 ];
 
 export default function LandingPage() {
@@ -28,14 +28,11 @@ export default function LandingPage() {
             <span style={{ color: "var(--accent)" }}>safe to launch?</span>
           </h1>
           <p style={{ fontSize: 18, color: "var(--muted)", maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.6 }}>
-            Gatewell evaluates your AI product for security risks, data leakage, prompt injection, and 6 more risk categories — before your users find them first.
+            Scan your website or GitHub repo for real security vulnerabilities — missing headers, exposed secrets, CORS misconfigurations, and more.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-            <Link href="/assess" style={{ padding: "12px 28px", borderRadius: 8, background: "var(--accent)", color: "white", fontWeight: 600, fontSize: 15, textDecoration: "none" }}>
-              Try Free Assessment
-            </Link>
-            <Link href="/dashboard" style={{ padding: "12px 28px", borderRadius: 8, border: "1px solid var(--border)", color: "var(--foreground)", fontWeight: 500, fontSize: 15, textDecoration: "none" }}>
-              View Dashboard
+            <Link href="/scan" style={{ padding: "12px 28px", borderRadius: 8, background: "var(--accent)", color: "white", fontWeight: 600, fontSize: 15, textDecoration: "none" }}>
+              Scan Now — Free
             </Link>
           </div>
         </section>
