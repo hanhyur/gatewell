@@ -17,9 +17,10 @@ class CorsConfig(
     fun corsFilter(): CorsFilter {
         val config = CorsConfiguration()
         allowedOrigins.split(",").forEach { config.addAllowedOrigin(it.trim()) }
-        config.addAllowedHeader("*")
-        config.addAllowedMethod("*")
+        config.allowedHeaders = listOf("Content-Type", "X-API-Key", "X-Admin-Secret")
+        config.allowedMethods = listOf("GET", "POST", "OPTIONS")
         config.allowCredentials = true
+        config.maxAge = 3600
 
         val source = UrlBasedCorsConfigurationSource()
         source.registerCorsConfiguration("/**", config)

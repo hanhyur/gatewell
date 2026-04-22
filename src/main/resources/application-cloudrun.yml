@@ -1,8 +1,10 @@
 gatewell:
   auth:
     enabled: true
+  admin:
+    secret: ${ADMIN_SECRET:}
   cors:
-    allowed-origins: ${FRONTEND_URL:https://gatewell-frontend.run.app}
+    allowed-origins: ${FRONTEND_URL:https://gatewell.dev}
 
 spring:
   datasource:
