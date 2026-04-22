@@ -5,7 +5,7 @@
 
 - Files
   `src/test/kotlin/me/hanhyur/gatewell/assessment/domain/model/SeverityTest.kt`
-  `src/main/kotlin/me/hanhyur/gatewell/assessment/domain/model/ProductName.kt`
+  `src/mai[document_pdf.pdf](../../../../Downloads/document_pdf.pdf)n/kotlin/me/hanhyur/gatewell/assessment/domain/model/ProductName.kt`
   `src/main/kotlin/me/hanhyur/gatewell/assessment/domain/model/Evidence.kt`
   `src/main/kotlin/me/hanhyur/gatewell/assessment/domain/model/FindingCode.kt`
   `src/main/kotlin/me/hanhyur/gatewell/assessment/domain/model/RuleVersion.kt`
