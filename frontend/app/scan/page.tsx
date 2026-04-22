@@ -1,25 +1,33 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Nav from "@/components/Nav";
-import { scanUrl, scanGitHub } from "@/lib/scan-api";
-import type { ScanResponse } from "@/types/scan";
-import { SCAN_SEVERITY_COLORS, SCAN_DECISION_CONFIG } from "@/types/scan";
+import { scanUrl, scanGitHub, getRemainingScans, registerEmail } from "@/lib/scan-api";
 
 type TabType = "url" | "github";
 
 export default function ScanPage() {
+  const router = useRouter();
   const [tab, setTab] = useState<TabType>("url");
   const [urlInput, setUrlInput] = useState("");
   const [repoInput, setRepoInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [result, setResult] = useState<ScanResponse | null>(null);
+  const [remaining, setRemaining] = useState<number | null>(null);
+  const [showEmailModal, setShowEmailModal] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
+  const [emailSubmitting, setEmailSubmitting] = useState(false);
+
+  useEffect(() => {
+    getRemainingScans()
+      .then((data) => setRemaining(data.remaining))
+      .catch(() => {});
+  }, []);
 
   async function handleScan(e: React.FormEvent) {
     e.preventDefault();
     setError("");
-    setResult(null);
     setLoading(true);
 
     try {
@@ -27,11 +35,35 @@ export default function ScanPage() {
         tab === "url"
           ? await scanUrl(urlInput)
           : await scanGitHub(repoInput);
-      setResult(report);
+      if (report.remainingScans !== undefined) {
+        setRemaining(report.remainingScans);
+      }
+      if (report.id) {
+        router.push(`/report/${report.id}`);
+      }
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Scan failed");
-    } finally {
+      const msg = err instanceof Error ? err.message : "Scan failed";
+      if (msg.includes("limit")) {
+        setShowEmailModal(true);
+      } else {
+        setError(msg);
+      }
       setLoading(false);
+    }
+  }
+
+  async function handleEmailSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setEmailSubmitting(true);
+    try {
+      const result = await registerEmail(emailInput);
+      setRemaining(result.remaining);
+      setShowEmailModal(false);
+      setEmailInput("");
+    } catch {
+      setError("Failed to register email");
+    } finally {
+      setEmailSubmitting(false);
     }
   }
 
@@ -50,7 +82,22 @@ export default function ScanPage() {
     <>
       <Nav />
       <main style={{ flex: 1, maxWidth: 900, margin: "0 auto", padding: "48px 24px", width: "100%" }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 8 }}>Security Scan</h1>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
+          <h1 style={{ fontSize: 28, fontWeight: 700 }}>Security Scan</h1>
+          {remaining !== null && (
+            <span style={{
+              padding: "4px 12px",
+              borderRadius: 6,
+              fontSize: 13,
+              fontWeight: 500,
+              background: remaining > 0 ? "var(--surface)" : "rgba(239,68,68,0.1)",
+              color: remaining > 0 ? "var(--muted)" : "#ef4444",
+              border: "1px solid var(--border)",
+            }}>
+              {remaining} scans remaining today
+            </span>
+          )}
+        </div>
         <p style={{ fontSize: 15, color: "var(--muted)", marginBottom: 32 }}>
           Scan a live URL for security vulnerabilities or a GitHub repo for hardcoded secrets and code issues.
         </p>
@@ -60,7 +107,7 @@ export default function ScanPage() {
           {(["url", "github"] as const).map((t) => (
             <button
               key={t}
-              onClick={() => { setTab(t); setResult(null); setError(""); }}
+              onClick={() => { setTab(t); setError(""); }}
               style={{
                 padding: "8px 20px",
                 borderRadius: 6,
@@ -80,39 +127,18 @@ export default function ScanPage() {
         {/* Input */}
         <form onSubmit={handleScan} style={{ display: "flex", gap: 12, marginBottom: 32 }}>
           {tab === "url" ? (
-            <input
-              type="text"
-              required
-              placeholder="https://your-app.com"
-              value={urlInput}
-              onChange={(e) => setUrlInput(e.target.value)}
-              style={inputStyle}
-            />
+            <input type="text" required placeholder="https://your-app.com" value={urlInput}
+              onChange={(e) => setUrlInput(e.target.value)} style={inputStyle} />
           ) : (
-            <input
-              type="text"
-              required
-              placeholder="https://github.com/owner/repo"
-              value={repoInput}
-              onChange={(e) => setRepoInput(e.target.value)}
-              style={inputStyle}
-            />
+            <input type="text" required placeholder="https://github.com/owner/repo" value={repoInput}
+              onChange={(e) => setRepoInput(e.target.value)} style={inputStyle} />
           )}
-          <button
-            type="submit"
-            disabled={loading}
-            style={{
-              padding: "10px 24px",
-              borderRadius: 8,
-              background: loading ? "var(--surface-2)" : "var(--accent)",
-              color: "white",
-              fontWeight: 600,
-              fontSize: 14,
-              border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <button type="submit" disabled={loading} style={{
+            padding: "10px 24px", borderRadius: 8,
+            background: loading ? "var(--surface-2)" : "var(--accent)",
+            color: "white", fontWeight: 600, fontSize: 14, border: "none",
+            cursor: loading ? "not-allowed" : "pointer", whiteSpace: "nowrap",
+          }}>
             {loading ? "Scanning..." : "Run Scan"}
           </button>
         </form>
@@ -122,67 +148,53 @@ export default function ScanPage() {
             {error}
           </div>
         )}
-
-        {/* Results */}
-        {result && <ScanResults result={result} />}
       </main>
-    </>
-  );
-}
 
-function ScanResults({ result }: { result: ScanResponse }) {
-  const decision = SCAN_DECISION_CONFIG[result.decision];
-
-  return (
-    <div>
-      {/* Decision */}
-      <div style={{ textAlign: "center", marginBottom: 32 }}>
-        <div style={{ display: "inline-block", padding: "14px 36px", borderRadius: 14, background: decision.bg, border: `2px solid ${decision.color}` }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: decision.color, textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 4 }}>
-            {decision.label}
+      {/* Email Modal */}
+      {showEmailModal && (
+        <div style={{
+          position: "fixed", inset: 0, background: "rgba(0,0,0,0.7)",
+          display: "flex", alignItems: "center", justifyContent: "center", zIndex: 50,
+        }}>
+          <div style={{
+            background: "var(--surface)", border: "1px solid var(--border)",
+            borderRadius: 16, padding: 32, maxWidth: 440, width: "90%",
+          }}>
+            <h2 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8 }}>
+              Daily limit reached
+            </h2>
+            <p style={{ fontSize: 14, color: "var(--muted)", marginBottom: 20, lineHeight: 1.5 }}>
+              You have used all 3 free scans today. Enter your email to unlock 3 more scans.
+            </p>
+            <form onSubmit={handleEmailSubmit} style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              <input type="email" required placeholder="your@email.com" value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+                style={{
+                  padding: "10px 14px", borderRadius: 8, border: "1px solid var(--border)",
+                  background: "var(--background)", color: "var(--foreground)", fontSize: 14, outline: "none",
+                }} />
+              <div style={{ display: "flex", gap: 8 }}>
+                <button type="submit" disabled={emailSubmitting} style={{
+                  flex: 1, padding: "10px", borderRadius: 8,
+                  background: "var(--accent)", color: "white", fontWeight: 600,
+                  fontSize: 14, border: "none", cursor: "pointer",
+                }}>
+                  {emailSubmitting ? "Submitting..." : "Unlock 3 More Scans"}
+                </button>
+                <button type="button" onClick={() => setShowEmailModal(false)} style={{
+                  padding: "10px 16px", borderRadius: 8, border: "1px solid var(--border)",
+                  background: "transparent", color: "var(--muted)", fontSize: 14, cursor: "pointer",
+                }}>
+                  Cancel
+                </button>
+              </div>
+            </form>
+            <p style={{ fontSize: 12, color: "var(--muted)", marginTop: 12 }}>
+              We will only use your email for product updates. No spam.
+            </p>
           </div>
-          <div style={{ fontSize: 28, fontWeight: 800, color: decision.color }}>{result.decision}</div>
         </div>
-        <div style={{ fontSize: 14, color: "var(--muted)", marginTop: 12 }}>{result.target}</div>
-      </div>
-
-      {/* Summary */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 10, marginBottom: 28 }}>
-        {[
-          { label: "Critical", value: result.summary.critical, color: SCAN_SEVERITY_COLORS.CRITICAL },
-          { label: "High", value: result.summary.high, color: SCAN_SEVERITY_COLORS.HIGH },
-          { label: "Medium", value: result.summary.medium, color: SCAN_SEVERITY_COLORS.MEDIUM },
-          { label: "Low", value: result.summary.low, color: SCAN_SEVERITY_COLORS.LOW },
-          { label: "Info", value: result.summary.info, color: SCAN_SEVERITY_COLORS.INFO },
-        ].map((s) => (
-          <div key={s.label} style={{ padding: 14, borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)", textAlign: "center" }}>
-            <div style={{ fontSize: 24, fontWeight: 700, color: s.value > 0 ? s.color : "var(--muted)" }}>{s.value}</div>
-            <div style={{ fontSize: 11, color: "var(--muted)", marginTop: 2 }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Findings */}
-      <h2 style={{ fontSize: 16, fontWeight: 600, marginBottom: 14 }}>Findings ({result.findings.length})</h2>
-      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        {result.findings.map((f, i) => (
-          <div key={i} style={{ padding: 14, borderRadius: 10, border: "1px solid var(--border)", background: "var(--surface)" }}>
-            <div style={{ display: "flex", gap: 10, alignItems: "center", marginBottom: 6 }}>
-              <span style={{ padding: "2px 8px", borderRadius: 4, fontSize: 11, fontWeight: 700, color: "white", background: SCAN_SEVERITY_COLORS[f.severity] || "#6b7280" }}>
-                {f.severity}
-              </span>
-              <span style={{ fontSize: 13, fontWeight: 600 }}>{f.title}</span>
-            </div>
-            <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.5, marginBottom: 6 }}>{f.detail}</p>
-            <div style={{ fontSize: 12, fontFamily: "var(--font-mono)", color: "var(--muted)", background: "var(--surface-2)", padding: "6px 10px", borderRadius: 6 }}>
-              {f.evidence}
-            </div>
-          </div>
-        ))}
-        {result.findings.length === 0 && (
-          <div style={{ padding: 24, textAlign: "center", color: "var(--muted)" }}>No issues found!</div>
-        )}
-      </div>
-    </div>
+      )}
+    </>
   );
 }
