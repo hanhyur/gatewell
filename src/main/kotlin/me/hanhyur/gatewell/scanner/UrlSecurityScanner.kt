@@ -37,6 +37,26 @@ class UrlSecurityScanner {
             )
         }
 
+        if (isBotProtectionPage(mainResponse)) {
+            return ScanReport(
+                url = url,
+                reachable = true,
+                findings = listOf(
+                    ScanFinding(
+                        severity = ScanSeverity.INFO,
+                        category = ScanCategory.AUTHENTICATION,
+                        code = "BOT_PROTECTION_DETECTED",
+                        title = "Bot protection detected — scan results may be inaccurate",
+                        detail = "This site uses Cloudflare, AWS WAF, or similar bot protection. " +
+                            "The scanner received a challenge page instead of the actual site content. " +
+                            "Results cannot be trusted. This scanner is designed for sites without enterprise-grade bot protection " +
+                            "(side projects, startups, vibe-coded apps).",
+                        evidence = "Response contains bot protection signatures (challenges.cloudflare.com, cf-mitigated, captcha)",
+                    )
+                ),
+            )
+        }
+
         checkSecurityHeaders(mainResponse, findings)
         checkCors(url, findings)
         checkCookieSecurity(mainResponse, findings)
@@ -46,6 +66,26 @@ class UrlSecurityScanner {
         checkSsl(url, findings)
 
         return ScanReport(url = url, reachable = true, findings = findings.sortedBy { it.severity.ordinal })
+    }
+
+    private fun isBotProtectionPage(response: HttpResponseData): Boolean {
+        val body = response.body.lowercase()
+        val headers = response.headers
+
+        val cloudflareChallenge = body.contains("challenges.cloudflare.com")
+            || body.contains("cf-challenge")
+            || body.contains("cf_chl_opt")
+            || headers["cf-mitigated"] != null
+            || (headers["server"]?.lowercase()?.contains("cloudflare") == true && response.statusCode == 403)
+
+        val genericChallenge = body.contains("captcha")
+            && body.contains("challenge")
+            && response.statusCode in listOf(403, 503)
+
+        val awsWaf = headers["x-amzn-waf-action"] != null
+            || (response.statusCode == 403 && body.contains("automated access"))
+
+        return cloudflareChallenge || genericChallenge || awsWaf
     }
 
     private fun checkSecurityHeaders(response: HttpResponseData, findings: MutableList<ScanFinding>) {
