@@ -1,3 +1,9 @@
+export interface PlatformFix {
+  platform: string
+  instruction: string
+  code?: string
+}
+
 export interface ScanFindingResponse {
   severity: string
   category: string
@@ -5,6 +11,9 @@ export interface ScanFindingResponse {
   title: string
   detail: string
   evidence: string
+  risk?: string
+  impact?: string
+  fixes?: PlatformFix[]
 }
 
 export interface ScanSummary {
