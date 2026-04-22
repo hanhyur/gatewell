@@ -18,12 +18,15 @@ export interface ScanSummary {
 }
 
 export interface ScanResponse {
+  id?: string
   scanType: string
   target: string
   reachable: boolean
   decision: string
   summary: ScanSummary
   findings: ScanFindingResponse[]
+  createdAt?: string
+  remainingScans?: number
 }
 
 export const SCAN_SEVERITY_COLORS: Record<string, string> = {
