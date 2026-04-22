@@ -4,7 +4,7 @@ services:
     environment:
       POSTGRES_DB: gatewell
       POSTGRES_USER: gatewell
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-gatewell_secret}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD env var is required}
     ports:
       - "5433:5432"
     volumes:
@@ -23,7 +23,7 @@ services:
       SPRING_PROFILES_ACTIVE: prod
       DATABASE_URL: jdbc:postgresql://db:5432/gatewell
       DATABASE_USERNAME: gatewell
-      DATABASE_PASSWORD: ${DB_PASSWORD:-gatewell_secret}
+      DATABASE_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD env var is required}
       GATEWELL_CORS_ALLOWED_ORIGINS: http://localhost:3001
     depends_on:
       db:

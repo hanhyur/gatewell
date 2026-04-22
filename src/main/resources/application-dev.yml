@@ -1,6 +1,8 @@
 gatewell:
   auth:
     enabled: false
+  admin:
+    secret: dev-admin-secret
 
 spring:
   datasource:
