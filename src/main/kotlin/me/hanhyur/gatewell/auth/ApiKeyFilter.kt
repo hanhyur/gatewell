@@ -18,12 +18,9 @@ class ApiKeyFilter(
         private const val API_KEY_HEADER = "X-API-Key"
         private val PUBLIC_PATHS = setOf(
             "/rule-version",
-            "/api-keys",
             "/scan",
-            "/h2-console",
             "/swagger-ui",
             "/v3/api-docs",
-            "/actuator",
         )
     }
 

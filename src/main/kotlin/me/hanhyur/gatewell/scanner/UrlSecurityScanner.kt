@@ -348,10 +348,30 @@ class UrlSecurityScanner {
 
     private fun normalizeUrl(url: String): String {
         val trimmed = url.trim().trimEnd('/')
-        return if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
+        val normalized = if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
             "https://$trimmed"
         } else {
             trimmed
+        }
+        validateNotInternal(normalized)
+        return normalized
+    }
+
+    private fun validateNotInternal(url: String) {
+        val uri = URI.create(url)
+        val host = uri.host ?: throw IllegalArgumentException("Invalid URL: no host")
+
+        val blocked = listOf(
+            "localhost", "127.0.0.1", "0.0.0.0", "::1",
+            "metadata.google.internal", "169.254.169.254",
+        )
+        require(host !in blocked) { "Scanning internal addresses is not allowed" }
+
+        val ip = runCatching { java.net.InetAddress.getByName(host) }.getOrNull()
+        if (ip != null) {
+            require(!ip.isLoopbackAddress) { "Scanning loopback addresses is not allowed" }
+            require(!ip.isSiteLocalAddress) { "Scanning private network addresses is not allowed" }
+            require(!ip.isLinkLocalAddress) { "Scanning link-local addresses is not allowed" }
         }
     }
 }

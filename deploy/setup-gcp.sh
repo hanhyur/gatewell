@@ -10,7 +10,7 @@ set -euo pipefail
 # ============================================================
 
 PROJECT_ID=$(gcloud config get-value project)
-REGION="${GCP_REGION:-asia-northeast3}"
+REGION="${GCP_REGION:-asia-northeast1}"
 DB_INSTANCE="gatewell-db"
 DB_NAME="gatewell"
 DB_USER="gatewell"
@@ -133,7 +133,8 @@ echo "Frontend: $FRONTEND_URL"
 echo "Backend:  $BACKEND_URL"
 echo "Swagger:  $BACKEND_URL/swagger-ui/index.html"
 echo ""
-echo "DB Password (save this!): $DB_PASSWORD"
+echo "DB password stored in Secret Manager: gatewell-db-password"
+echo "Retrieve with: gcloud secrets versions access latest --secret=gatewell-db-password"
 echo ""
-echo "To create an API key:"
-echo "  curl -X POST $BACKEND_URL/api-keys -H 'Content-Type: application/json' -d '{\"owner\":\"admin\"}'"
+echo "To create an API key, set GATEWELL_ADMIN_SECRET env var on Cloud Run, then:"
+echo "  curl -X POST $BACKEND_URL/api-keys -H 'Content-Type: application/json' -H 'X-Admin-Secret: YOUR_SECRET' -d '{\"owner\":\"admin\"}'"

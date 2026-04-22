@@ -1,11 +1,12 @@
 # GCP 배포 작업 기록
 
-**작업일:** 2026-04-21
+**작업일:** 2026-04-21 ~ 2026-04-22
 **작업자:** Sunwoo Han (sunwoohan.me@gmail.com)
 **프로젝트 ID:** project-c0638ffd-cf77-408e-897
 **프로젝트 번호:** 937862530696
-**리전:** asia-northeast3 (서울)
+**리전:** asia-northeast1 (도쿄) — 서울에서 이전, 커스텀 도메인 매핑 지원
 **서비스 계정:** 937862530696-compute@developer.gserviceaccount.com
+**도메인:** gatewell.dev
 
 ---
 
@@ -506,18 +507,18 @@ gcloud beta run domain-mappings list --region asia-northeast1
 | B. 도쿄 리전으로 재배포 | asia-northeast1에서 도메인 매핑 지원 | 없음 (리전 이동만) | 중간 |
 | C. Load Balancer 사용 | Global LB → Cloud Run 연결 | 월 ~$18-20 | 높음 |
 
-### 결정
+### 결정 및 실행
 
-현재: **A안 채택** (추가 비용 없이 .run.app URL로 운영)
+**B안 채택** — 도쿄 리전(asia-northeast1)으로 전체 재배포 완료 (2026-04-21)
 
-향후: **B안 권장** — 도쿄 리전(asia-northeast1)으로 서비스를 재배포하면 추가 비용 없이 gatewell.dev 도메인 매핑이 가능. 한국에서의 레이턴시 차이는 미미함 (서울 ↔ 도쿄 ~30ms).
-
-도쿄 리전 재배포 시 필요한 작업:
-1. Cloud SQL 인스턴스를 도쿄에 새로 생성 (기존 서울 인스턴스 삭제)
-2. Artifact Registry를 도쿄에 생성
-3. Cloud Run 서비스를 도쿄에 배포
-4. `gcloud beta run domain-mappings create --domain gatewell.dev --region asia-northeast1`
-5. Cloud DNS에 매핑에서 안내하는 레코드 추가
+실행한 작업:
+1. Artifact Registry를 도쿄에 생성
+2. Cloud SQL `gatewell-db-tokyo` 인스턴스를 도쿄에 생성
+3. 백엔드/프론트엔드를 도쿄 Cloud Run에 배포
+4. `gcloud beta run domain-mappings create --domain gatewell.dev --region asia-northeast1` → 성공
+5. `gcloud beta run domain-mappings create --domain api.gatewell.dev --region asia-northeast1` → 성공
+6. Cloud DNS에 A/AAAA/CNAME 레코드 추가
+7. 서울 리전 리소스 전체 삭제 (Cloud Run, Cloud SQL, Artifact Registry)
 
 ---
 
@@ -555,14 +556,14 @@ return ScanReport(url = url, reachable = true, findings = findings.sortedBy { it
 
 | 항목 | 값 |
 |------|-----|
-| 프론트엔드 URL | https://gatewell-frontend-937862530696.asia-northeast3.run.app |
-| 백엔드 API URL | https://gatewell-api-937862530696.asia-northeast3.run.app |
-| Swagger 문서 | https://gatewell-api-937862530696.asia-northeast3.run.app/swagger-ui/index.html |
-| 도메인 | gatewell.dev (등록 완료, 연결 보류 — 서울 리전 도메인 매핑 미지원) |
-| DB 인스턴스 | gatewell-db (PostgreSQL 15, db-f1-micro, 34.64.173.30) |
-| 리전 | asia-northeast3 (서울) |
-| 백엔드 리비전 | gatewell-api-00005-6fx |
-| 프론트엔드 리비전 | gatewell-frontend-00002-4ts |
+| 프론트엔드 URL | https://gatewell.dev |
+| 백엔드 API URL | https://api.gatewell.dev |
+| Cloud Run 프론트엔드 | https://gatewell-frontend-937862530696.asia-northeast1.run.app |
+| Cloud Run 백엔드 | https://gatewell-api-937862530696.asia-northeast1.run.app |
+| Swagger 문서 | https://api.gatewell.dev/swagger-ui/index.html |
+| 도메인 | gatewell.dev (등록 + 매핑 완료) |
+| DB 인스턴스 | gatewell-db-tokyo (PostgreSQL 15, db-f1-micro) |
+| 리전 | asia-northeast1 (도쿄) |
 
 ### Cloud Run 서비스 사양
 
@@ -616,16 +617,19 @@ return ScanReport(url = url, reachable = true, findings = findings.sortedBy { it
 
 ```bash
 # Cloud SQL 일시 중지 (비용 절약, 사용하지 않을 때)
-gcloud sql instances patch gatewell-db --activation-policy=NEVER
+gcloud sql instances patch gatewell-db-tokyo --activation-policy=NEVER
 
 # Cloud SQL 재시작
-gcloud sql instances patch gatewell-db --activation-policy=ALWAYS
+gcloud sql instances patch gatewell-db-tokyo --activation-policy=ALWAYS
 
 # 배포된 서비스 상태 확인
-gcloud run services list --region asia-northeast3
+gcloud run services list --region asia-northeast1
 
 # Cloud Run 로그 확인
-gcloud run services logs read gatewell-api --region asia-northeast3 --limit 50
+gcloud run services logs read gatewell-api --region asia-northeast1 --limit 50
+
+# 도메인 매핑 상태 확인
+gcloud beta run domain-mappings list --region asia-northeast1
 
 # 도메인 상태 확인
 gcloud domains registrations describe gatewell.dev
@@ -636,10 +640,35 @@ gcloud domains registrations describe gatewell.dev
 
 ---
 
+## 6단계: 보안 점검 및 수정 (2026-04-22)
+
+### 수정된 보안 이슈
+
+| # | 이슈 | 심각도 | 수정 내용 |
+|---|------|--------|----------|
+| 1 | SSRF 취약점 | HIGH | UrlSecurityScanner에 private IP, loopback, metadata endpoint 차단 추가 |
+| 2 | /api-keys 무제한 공개 | CRITICAL | X-Admin-Secret 헤더 검증 추가, PUBLIC_PATHS에서 제거 |
+| 3 | /actuator, /h2-console 공개 | CRITICAL | PUBLIC_PATHS에서 제거 |
+| 4 | application-prod.yml 빈 패스워드 | CRITICAL | 기본값 제거, 환경변수 필수 |
+| 5 | deploy 스크립트 패스워드 출력 | CRITICAL | echo 제거, Secret Manager 조회 안내로 대체 |
+| 6 | CORS 와일드카드 | MEDIUM | 허용 헤더/메서드를 명시적으로 제한 |
+| 7 | docker-compose 기본 패스워드 | HIGH | 기본값 제거, 환경변수 필수로 변경 |
+
+### 파일 정리
+
+- 삭제: frontend/public/{vercel,next,file,globe,window}.svg (템플릿 파일)
+- 삭제: frontend/app/assess/, frontend/app/dashboard/ (미사용 페이지)
+- 삭제: frontend/README.md, frontend/CLAUDE.md (기본 템플릿)
+- 삭제: .DS_Store
+- 삭제: 머지 완료된 feature 브랜치 7개
+- 수정: frontend/Dockerfile ARG 기본값을 localhost로 복원 (프로젝트 ID 노출 방지)
+
+---
+
 ## 향후 작업
 
-1. **도쿄 리전 재배포 + 도메인 연결** — gatewell.dev를 실제 서비스 URL로 사용
-2. **예산 알림 설정** — GCP 콘솔 → 결제 → 예산 만들기
-3. **Cloud SQL 공개 IP 비활성화** — `gcloud sql instances patch gatewell-db --no-assign-ip`
-4. **/api-keys 엔드포인트 관리자 인증 추가** — 현재 누구나 키 생성 가능
+1. **예산 알림 설정** — GCP 콘솔 → 결제 → 예산 만들기
+2. **Cloud SQL 공개 IP 비활성화** — `gcloud sql instances patch gatewell-db-tokyo --no-assign-ip`
+3. **ADMIN_SECRET 환경변수 설정** — Cloud Run에 시크릿으로 추가
+4. **GitHub API 토큰 추가** — GitHubCodeScanner 인증 요청으로 rate limit 확보 (60→5000/hr)
 5. **Cold start 최적화** — min-instances=1로 변경 시 항상 하나의 인스턴스 대기 (비용 증가)

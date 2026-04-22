@@ -1,5 +1,6 @@
 package me.hanhyur.gatewell.auth
 
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
@@ -8,10 +9,22 @@ import java.util.UUID
 @RequestMapping("/api-keys")
 class ApiKeyController(
     private val apiKeyRepository: ApiKeyRepository,
+    @Value("\${gatewell.admin.secret:}")
+    private val adminSecret: String,
 ) {
 
     @PostMapping
-    fun createApiKey(@RequestBody request: CreateApiKeyRequest): ResponseEntity<ApiKeyResponse> {
+    fun createApiKey(
+        @RequestHeader("X-Admin-Secret") secret: String?,
+        @RequestBody request: CreateApiKeyRequest,
+    ): ResponseEntity<Any> {
+        if (adminSecret.isBlank()) {
+            return ResponseEntity.status(503).body(mapOf("error" to "Admin secret not configured"))
+        }
+        if (secret != adminSecret) {
+            return ResponseEntity.status(403).body(mapOf("error" to "Invalid admin secret"))
+        }
+
         val key = "gw_${UUID.randomUUID().toString().replace("-", "")}"
         val entity = ApiKeyEntity(
             key = key,
