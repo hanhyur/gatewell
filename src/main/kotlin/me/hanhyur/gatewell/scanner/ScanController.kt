@@ -234,6 +234,7 @@ data class ScanResponse(
                     categories = report.findings.map { it.category.name }.distinct().sorted(),
                 ),
                 findings = report.findings.map { f ->
+                    val guide = FindingGuideMap.getGuide(f.code)
                     ScanFindingResponse(
                         severity = f.severity.name,
                         category = f.category.name,
@@ -241,6 +242,11 @@ data class ScanResponse(
                         title = f.title,
                         detail = f.detail,
                         evidence = f.evidence,
+                        risk = guide?.risk,
+                        impact = guide?.impact,
+                        fixes = guide?.fixes?.map { fix ->
+                            PlatformFixResponse(fix.platform, fix.instruction, fix.code)
+                        },
                     )
                 },
             )
@@ -254,7 +260,15 @@ data class ScanSummary(
     val categories: List<String>,
 )
 
+data class PlatformFixResponse(
+    val platform: String,
+    val instruction: String,
+    val code: String? = null,
+)
+
 data class ScanFindingResponse(
     val severity: String, val category: String, val code: String,
     val title: String, val detail: String, val evidence: String,
+    val risk: String? = null, val impact: String? = null,
+    val fixes: List<PlatformFixResponse>? = null,
 )
