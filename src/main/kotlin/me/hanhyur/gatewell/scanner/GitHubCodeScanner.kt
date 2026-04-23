@@ -87,7 +87,7 @@ class GitHubCodeScanner {
                         category = ScanCategory.CODE_VULNERABILITY,
                         code = "REPO_INACCESSIBLE",
                         title = "Repository not accessible",
-                        detail = "Could not access the GitHub repository. It may be private or not exist.",
+                        detail = "Could not access the GitHub repository. Private repositories are not supported — only public repos can be scanned. Please check the URL and try again.",
                         evidence = "GitHub API returned error for $owner/$repo",
                     )
                 ),
