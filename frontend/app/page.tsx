@@ -21,14 +21,14 @@ export default function LandingPage() {
       <main style={{ flex: 1 }}>
         <section style={{ maxWidth: 1100, margin: "0 auto", padding: "80px 24px 60px", textAlign: "center" }}>
           <div style={{ display: "inline-block", padding: "4px 14px", borderRadius: 100, border: "1px solid var(--border)", fontSize: 13, color: "var(--muted)", marginBottom: 24 }}>
-            Launch with confidence, not hope
+            Free website security scanner
           </div>
           <h1 style={{ fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 800, lineHeight: 1.1, letterSpacing: "-0.03em", marginBottom: 20 }}>
-            Is your AI product<br />
-            <span style={{ color: "var(--accent)" }}>safe to launch?</span>
+            Find security holes<br />
+            <span style={{ color: "var(--accent)" }}>before hackers do</span>
           </h1>
-          <p style={{ fontSize: 18, color: "var(--muted)", maxWidth: 560, margin: "0 auto 36px", lineHeight: 1.6 }}>
-            Scan your website or GitHub repo for real security vulnerabilities — missing headers, exposed secrets, CORS misconfigurations, and more.
+          <p style={{ fontSize: 18, color: "var(--muted)", maxWidth: 600, margin: "0 auto 36px", lineHeight: 1.6 }}>
+            Paste your URL and get an instant security report. We check for missing headers, exposed secrets, CORS misconfigurations, XSS vulnerabilities, and more — with step-by-step fix guides.
           </p>
           <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
             <Link href="/scan" style={{ padding: "12px 28px", borderRadius: 8, background: "var(--accent)", color: "white", fontWeight: 600, fontSize: 15, textDecoration: "none" }}>
@@ -63,7 +63,7 @@ export default function LandingPage() {
         </section>
       </main>
       <footer style={{ borderTop: "1px solid var(--border)", padding: "20px 24px", textAlign: "center", fontSize: 13, color: "var(--muted)" }}>
-        Gatewell — AI Launch Risk Evaluation
+        Gatewell — Free Website Security Scanner
       </footer>
     </>
   );
