@@ -16,6 +16,9 @@ export default function Nav() {
       style={{
         borderBottom: "1px solid var(--border)",
         background: "var(--surface)",
+        position: "sticky",
+        top: 0,
+        zIndex: 40,
       }}
     >
       <div
