@@ -130,8 +130,11 @@ export default function ScanPage() {
             <input type="text" required placeholder="https://your-app.com" value={urlInput}
               onChange={(e) => setUrlInput(e.target.value)} style={inputStyle} />
           ) : (
-            <input type="text" required placeholder="https://github.com/owner/repo" value={repoInput}
-              onChange={(e) => setRepoInput(e.target.value)} style={inputStyle} />
+            <div style={{ flex: 1, display: "flex", flexDirection: "column", gap: 4 }}>
+              <input type="text" required placeholder="https://github.com/owner/repo" value={repoInput}
+                onChange={(e) => setRepoInput(e.target.value)} style={inputStyle} />
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>Public repositories only. Private repos are not supported.</span>
+            </div>
           )}
           <button type="submit" disabled={loading} style={{
             padding: "10px 24px", borderRadius: 8,
