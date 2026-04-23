@@ -388,10 +388,10 @@ class UrlSecurityScanner {
 
     private fun normalizeUrl(url: String): String {
         val trimmed = url.trim().trimEnd('/')
-        val normalized = if (!trimmed.startsWith("http://") && !trimmed.startsWith("https://")) {
-            "https://$trimmed"
-        } else {
-            trimmed
+        val normalized = when {
+            trimmed.startsWith("http://") -> trimmed.replaceFirst("http://", "https://")
+            trimmed.startsWith("https://") -> trimmed
+            else -> "https://$trimmed"
         }
         validateNotInternal(normalized)
         return normalized
