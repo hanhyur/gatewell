@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpServletResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import java.time.Instant
 
 @Component
 class ApiKeyFilter(
@@ -19,8 +20,6 @@ class ApiKeyFilter(
         private val PUBLIC_PATHS = setOf(
             "/rule-version",
             "/scan",
-            "/swagger-ui",
-            "/v3/api-docs",
         )
     }
 
@@ -40,9 +39,15 @@ class ApiKeyFilter(
             return
         }
 
-        val keyEntity = apiKeyRepository.findByKeyAndActiveTrue(apiKey)
+        val keyHash = ApiKeyEntity.hashKey(apiKey)
+        val keyEntity = apiKeyRepository.findByKeyHashAndActiveTrue(keyHash)
         if (keyEntity == null) {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid API key")
+            return
+        }
+
+        if (keyEntity.expiresAt != null && keyEntity.expiresAt.isBefore(Instant.now())) {
+            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "API key expired")
             return
         }
 
