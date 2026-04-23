@@ -197,8 +197,14 @@ class ScanController(
     }
 
     private fun extractClientIp(request: HttpServletRequest): String {
-        return request.getHeader("X-Forwarded-For")?.split(",")?.firstOrNull()?.trim()
-            ?: request.remoteAddr
+        // Cloud Run: rightmost X-Forwarded-For entry is the actual client IP
+        val xff = request.getHeader("X-Forwarded-For")
+        if (xff != null) {
+            val parts = xff.split(",").map { it.trim() }.filter { it.isNotBlank() }
+            if (parts.size >= 2) return parts[parts.size - 2] // second from right = client
+            if (parts.isNotEmpty()) return parts.last()
+        }
+        return request.remoteAddr
     }
 }
 
