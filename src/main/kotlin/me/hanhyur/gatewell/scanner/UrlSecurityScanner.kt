@@ -121,13 +121,22 @@ class UrlSecurityScanner {
                 detail = "No CSP header. Site is vulnerable to XSS and data injection attacks.",
                 evidence = "Header not present in response",
             )
-        } else if (csp.contains("unsafe-inline") || csp.contains("unsafe-eval")) {
+        } else if (csp.contains("unsafe-eval")) {
             findings += ScanFinding(
                 severity = ScanSeverity.MEDIUM,
                 category = ScanCategory.MISSING_SECURITY_HEADER,
                 code = "WEAK_CSP",
                 title = "Weak Content-Security-Policy",
-                detail = "CSP contains 'unsafe-inline' or 'unsafe-eval', reducing XSS protection.",
+                detail = "CSP contains 'unsafe-eval', which allows dynamic code execution and significantly weakens XSS protection.",
+                evidence = "CSP: $csp",
+            )
+        } else if (csp.contains("unsafe-inline") && !csp.contains("nonce-")) {
+            findings += ScanFinding(
+                severity = ScanSeverity.LOW,
+                category = ScanCategory.MISSING_SECURITY_HEADER,
+                code = "CSP_UNSAFE_INLINE",
+                title = "CSP uses unsafe-inline",
+                detail = "CSP allows inline scripts. Consider using nonce-based CSP for stronger protection. Common in frameworks like Next.js and React.",
                 evidence = "CSP: $csp",
             )
         }
@@ -354,16 +363,19 @@ class UrlSecurityScanner {
 
         val httpUrl = url.replace("https://", "http://")
         if (url.startsWith("https://")) {
-            val resp = fetchSafely(httpUrl)
-            if (resp != null && resp.statusCode in 200..299) {
-                findings += ScanFinding(
-                    severity = ScanSeverity.MEDIUM,
-                    category = ScanCategory.SSL_TLS,
-                    code = "HTTP_ACCESSIBLE",
-                    title = "HTTP version still accessible",
-                    detail = "Site responds on HTTP without redirecting to HTTPS. Users may accidentally use the unencrypted version.",
-                    evidence = "GET $httpUrl → HTTP ${resp.statusCode} (no redirect to HTTPS)",
-                )
+            val noRedirectResp = fetchWithoutRedirect(httpUrl)
+            if (noRedirectResp != null) {
+                if (noRedirectResp.statusCode in 200..299) {
+                    findings += ScanFinding(
+                        severity = ScanSeverity.MEDIUM,
+                        category = ScanCategory.SSL_TLS,
+                        code = "HTTP_ACCESSIBLE",
+                        title = "Unencrypted HTTP is still accessible",
+                        detail = "Site responds on HTTP without redirecting to HTTPS. Users may accidentally use the unencrypted version.",
+                        evidence = "GET $httpUrl → HTTP ${noRedirectResp.statusCode} (no redirect to HTTPS)",
+                    )
+                }
+                // 301/302/307/308 = proper redirect to HTTPS → no finding (good)
             }
         }
     }
@@ -376,6 +388,28 @@ class UrlSecurityScanner {
                 .GET()
                 .build()
             val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+            HttpResponseData(
+                statusCode = response.statusCode(),
+                headers = response.headers().map().mapValues { it.value.firstOrNull() ?: "" }
+                    .mapKeys { it.key.lowercase() },
+                body = response.body().take(5000),
+                setCookieHeaders = response.headers().allValues("set-cookie"),
+            )
+        }.getOrNull()
+    }
+
+    private fun fetchWithoutRedirect(url: String): HttpResponseData? {
+        val noRedirectClient = HttpClient.newBuilder()
+            .followRedirects(HttpClient.Redirect.NEVER)
+            .connectTimeout(Duration.ofSeconds(10))
+            .build()
+        return runCatching {
+            val request = HttpRequest.newBuilder()
+                .uri(URI.create(url))
+                .timeout(Duration.ofSeconds(10))
+                .GET()
+                .build()
+            val response = noRedirectClient.send(request, HttpResponse.BodyHandlers.ofString())
             HttpResponseData(
                 statusCode = response.statusCode(),
                 headers = response.headers().map().mapValues { it.value.firstOrNull() ?: "" }
