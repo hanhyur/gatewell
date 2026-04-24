@@ -42,10 +42,17 @@ object FindingGuideMap {
             ),
         ),
         "WEAK_CSP" to HumanReadableGuide(
-            risk = "Security policy has gaps",
-            impact = "Your CSP contains 'unsafe-inline' or 'unsafe-eval', which still allows malicious scripts to execute.",
+            risk = "Security policy allows dangerous code execution",
+            impact = "Your CSP contains 'unsafe-eval', which allows dynamic code execution and significantly weakens XSS protection.",
             fixes = listOf(
-                PlatformFix("All platforms", "Remove 'unsafe-inline' from CSP and switch to nonce-based scripts. Also remove 'unsafe-eval'.", null),
+                PlatformFix("All platforms", "Remove 'unsafe-eval' from your CSP. Production builds of modern frameworks don't need it.", null),
+            ),
+        ),
+        "CSP_UNSAFE_INLINE" to HumanReadableGuide(
+            risk = "CSP allows inline scripts",
+            impact = "Inline scripts are permitted. Consider nonce-based CSP for stronger protection. This is common and acceptable in many modern frameworks.",
+            fixes = listOf(
+                PlatformFix("Next.js", "Use Next.js nonce-based CSP for stricter protection", null),
             ),
         ),
         "MISSING_XCTO" to HumanReadableGuide(
