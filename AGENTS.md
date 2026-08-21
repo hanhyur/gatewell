@@ -1,16 +1,18 @@
 # AGENTS.md
 
 ## 1. Project Overview
-This project is an AI-native backend system that evaluates whether an AI-powered product is safe to launch.
+Gatewell is a website security scanner that tells a site owner whether their site is safe to expose: scan a URL or public GitHub repository, get prioritized findings with fix guides, and a clear verdict (ALLOW / CAUTION / BLOCK).
 
 The system must:
-- identify real launch risks
-- prioritize them
-- produce actionable recommendations
-- support launch decisions (allow / caution / block)
+- identify real, exploitable risks (headers, CORS, cookies, TLS, exposed paths, leaked secrets)
+- prioritize them by severity
+- produce actionable, copy-paste fix guidance
+- support a launch decision (allow / caution / block)
 
 This is NOT a checklist generator.
-This is a risk evaluation platform with reproducible and testable decision logic.
+This is a risk evaluation engine with reproducible and testable decision logic.
+
+(The project started as a general AI-product launch-risk evaluator and pivoted to the security scanner above; the assessment engine remains under `assessment/`.)
 
 ---
 

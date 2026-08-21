@@ -2,7 +2,7 @@ gatewell:
   auth:
     enabled: false
   admin:
-    secret: dev-admin-secret
+    secret: local-dev-example-only  # example value for local dev; never used in prod (see application-cloudrun.yml)
 
 spring:
   datasource:

@@ -4,7 +4,7 @@ Free website security scanner for side projects, startups, and vibe-coded apps.
 
 Paste your URL → get an instant security report with step-by-step fix guides.
 
-**Live:** https://gatewell.dev
+**Status:** Not currently live. Previously deployed to Google Cloud Run at `gatewell.dev`; resources were torn down to control cost. See [docs/deployment.md](docs/deployment.md) for the deployment architecture and lessons learned. Runs locally with one command (below).
 
 ---
 
@@ -49,8 +49,7 @@ No signup required. Free to use.
 | Backend | Kotlin 2.3 + Spring Boot 4.0 |
 | Frontend | Next.js 16 + TypeScript + Tailwind CSS 4 |
 | Database | PostgreSQL (Cloud SQL) |
-| Infrastructure | Google Cloud Run (Tokyo) |
-| Domain | gatewell.dev |
+| Infrastructure | Google Cloud Run (deployed, later decommissioned) |
 
 ## Project Structure
 
@@ -82,7 +81,8 @@ gatewell/
 │   ├── setup-gcp.sh          # One-command GCP deployment
 │   └── teardown-gcp.sh       # Resource cleanup
 ├── docs/
-│   └── gcp-deployment-log.md # Deployment history with issues & fixes
+│   └── deployment.md         # Deployment architecture & lessons learned
+├── prompts/                  # AI workflow prompts (research → plan → tasks → implement → review)
 ├── Dockerfile                # Backend container
 ├── docker-compose.yml        # Local dev (backend + frontend + PostgreSQL)
 └── build.gradle
@@ -127,7 +127,7 @@ DB_PASSWORD=your_password docker compose up -d
 
 ## Deployment (GCP)
 
-Deployed on Google Cloud Run (Tokyo region) with Cloud SQL PostgreSQL.
+Previously deployed on Google Cloud Run with Cloud SQL PostgreSQL. The deployment scripts remain reproducible on any GCP project.
 
 ```bash
 # First time setup
@@ -141,7 +141,7 @@ gcloud config set project YOUR_PROJECT_ID
 ./deploy/teardown-gcp.sh
 ```
 
-See [docs/gcp-deployment-log.md](docs/gcp-deployment-log.md) for detailed deployment history.
+See [docs/deployment.md](docs/deployment.md) for the architecture and issues encountered during deployment.
 
 ## Security
 
@@ -156,6 +156,16 @@ Applied security measures:
 - Cloud SQL SSL enforced, automated backups
 - Swagger/API docs disabled in production
 
+## How This Was Built — AI Workflow
+
+This project was built with AI coding agents (Claude Code, Codex CLI) operating under explicit rules, with every stage gated by human review.
+
+- **Pipeline:** research → plan → tasks → implement → review. Each stage has a fixed prompt in [`prompts/`](prompts/), and each stage writes its output to `docs/` so the next stage works from a reviewed document, not chat history.
+- **Rules:** [`AGENTS.md`](AGENTS.md) defines domain constraints and quality bars; [`CODEX.md`](CODEX.md) defines how agents must behave in this codebase.
+- **Gates:** agent output only lands after passing tests (`./gradlew test`), the review-stage checklist, and a self-scan (Gatewell scanning its own deployment) — see the PR history for the audit-fix cycles this produced.
+
+The prompts are preserved as-is, including their informal tone — they are the actual working artifacts, not documentation written after the fact.
+
 ## License
 
-Private project.
+All rights reserved. Source is public for portfolio and reference purposes.
